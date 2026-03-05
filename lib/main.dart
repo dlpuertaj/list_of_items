@@ -36,9 +36,13 @@ class MyApp extends StatelessWidget {
 
 class Record {
   final DateTime dateTime;
-  final String text;
+  String text;
 
-  const Record({required this.dateTime, required this.text});
+  Record({required this.dateTime, required this.text});
+
+  void setText(String text) {
+    this.text = text;
+  }
 }
 
 class MyHomeScreen extends StatefulWidget {
@@ -72,11 +76,14 @@ class _MyHomeScreenState extends State<MyHomeScreen> {
     });
   }
 
-  void _onRecordTap(Record item) {
-    // TODO: define beShavior on item tap (e.g. open detail page, edit, etc.)
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('Tapped: ${item.text}')));
+  void _editRecord(Record record, String text) {
+    setState(() {
+      record.setText(text);
+    });
+  }
+
+  void _onRecordTap(Record record) {
+    _showEditRecordPopup(record);
   }
 
   void _showPopupForm() {
@@ -101,6 +108,40 @@ class _MyHomeScreenState extends State<MyHomeScreen> {
                 onPressed: () {
                   // Handle the apply action here, e.g., print the text or process it
                   _addRecord(_textController.text);
+                  //print('Applied text: ${_textController.text}');
+                  Navigator.of(context).pop(); // Close the dialog
+                },
+                child: const Text('Apply'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showEditRecordPopup(Record record) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Simple Form'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: _textController,
+                autofocus: true,
+                decoration: const InputDecoration(
+                  labelText: 'Enter text',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  // Handle the apply action here, e.g., print the text or process it
+                  _editRecord(record, _textController.text);
                   //print('Applied text: ${_textController.text}');
                   Navigator.of(context).pop(); // Close the dialog
                 },
