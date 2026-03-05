@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -42,54 +41,6 @@ class Record {
   const Record({required this.dateTime, required this.text});
 }
 
-const List<String> _wordPool = [
-  'apple',
-  'river',
-  'thunder',
-  'cabinet',
-  'horizon',
-  'lantern',
-  'marble',
-  'falcon',
-  'crystal',
-  'shadow',
-  'forest',
-  'pebble',
-  'canyon',
-  'ember',
-  'whisper',
-  'glacier',
-  'sparrow',
-  'cobalt',
-  'driftwood',
-  'solstice',
-  'nimbus',
-  'tandem',
-  'cinder',
-  'quartz',
-  'bramble',
-  'eclipse',
-  'vortex',
-  'flicker',
-  'monsoon',
-  'cellar',
-  'anchor',
-  'tundra',
-  'hollow',
-  'prism',
-];
-
-String _randomText(Random rng) {
-  final wordCount = rng.nextInt(4) + 2; // 2 to 5 words
-  final words = List.generate(
-    wordCount,
-    (_) => _wordPool[rng.nextInt(_wordPool.length)],
-  );
-  words[0] =
-      words[0][0].toUpperCase() + words[0].substring(1); // capitalize first
-  return words.join(' ');
-}
-
 class MyHomeScreen extends StatefulWidget {
   const MyHomeScreen({super.key});
 
@@ -98,9 +49,11 @@ class MyHomeScreen extends StatefulWidget {
 }
 
 class _MyHomeScreenState extends State<MyHomeScreen> {
-  final Random _rng = Random();
+  //final Random _rng = Random();
 
   final List<Record> _records = [];
+
+  final TextEditingController _textController = TextEditingController();
 
   String _formatDateTime(DateTime dt) {
     final date =
@@ -110,11 +63,11 @@ class _MyHomeScreenState extends State<MyHomeScreen> {
     return '$date  $time';
   }
 
-  void _addRecord() {
+  void _addRecord(String text) {
     setState(() {
       _records.insert(
         0, // newest item appears at the top
-        Record(dateTime: DateTime.now(), text: _randomText(_rng)),
+        Record(dateTime: DateTime.now(), text: text),
       );
     });
   }
@@ -124,6 +77,40 @@ class _MyHomeScreenState extends State<MyHomeScreen> {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text('Tapped: ${item.text}')));
+  }
+
+  void _showPopupForm() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Simple Form'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: _textController,
+                autofocus: true,
+                decoration: const InputDecoration(
+                  labelText: 'Enter text',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  // Handle the apply action here, e.g., print the text or process it
+                  _addRecord(_textController.text);
+                  //print('Applied text: ${_textController.text}');
+                  Navigator.of(context).pop(); // Close the dialog
+                },
+                child: const Text('Apply'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -136,7 +123,7 @@ class _MyHomeScreenState extends State<MyHomeScreen> {
         centerTitle: true,
         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
         actions: [
-          IconButton(onPressed: _addRecord, icon: Icon(Icons.add_circle)),
+          IconButton(onPressed: _showPopupForm, icon: Icon(Icons.add_circle)),
         ],
       ),
 
