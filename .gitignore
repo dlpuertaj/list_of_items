@@ -38,6 +38,10 @@ migrate_working_dir/
 /web/
 /android/
 /windows/
+/test/
+*.yaml
+*.lock
+*.metadata
 
 # Symbolication related
 app.*.symbols
