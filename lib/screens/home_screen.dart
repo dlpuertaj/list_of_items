@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../database/database_helper.dart';
 import '../models/record.dart';
 
 class MyHomeScreen extends StatefulWidget {
@@ -11,9 +12,23 @@ class MyHomeScreen extends StatefulWidget {
 class _MyHomeScreenState extends State<MyHomeScreen> {
   //final Random _rng = Random();
 
-  final List<Record> _records = [];
+  late List<Record> _records = [];
 
   final TextEditingController _textController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRecords();
+  }
+
+  Future<void> _loadRecords() async {
+    final records = await DatabaseHelper.instance.getAllRecords();
+    final recordList = records.map((map) => Record.fromMap(map)).toList();
+    setState(() {
+      _records = recordList;
+    });
+  }
 
   String _formatDateTime(DateTime dt) {
     final date =
@@ -23,19 +38,20 @@ class _MyHomeScreenState extends State<MyHomeScreen> {
     return '$date  $time';
   }
 
-  void _addRecord(String text) {
-    setState(() {
-      _records.insert(
-        0, // newest item appears at the top
-        Record(dateTime: DateTime.now(), text: text),
-      );
-    });
+  void _addRecord(String text) async {
+    Record newRecord = Record(
+      dateTime: DateTime.now(),
+      text: text,
+      recordNote: '',
+    );
+    await DatabaseHelper.instance.insertRecord(newRecord.toMap());
+    await _loadRecords();
   }
 
-  void _editRecord(Record record, String text) {
-    setState(() {
-      record.setText(text);
-    });
+  void _editRecord(Record record, String text) async {
+    record.setText(text);
+    await DatabaseHelper.instance.updateRecord(record.toMap());
+    await _loadRecords();
   }
 
   void _onRecordTap(Record record) {
