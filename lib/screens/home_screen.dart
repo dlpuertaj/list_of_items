@@ -25,6 +25,7 @@ class _MyHomeScreenState extends State<MyHomeScreen> {
   Future<void> _loadRecords() async {
     final records = await DatabaseHelper.instance.getAllRecords();
     final recordList = records.map((map) => Record.fromMap(map)).toList();
+    for (Record record in recordList) print(record.text);
     setState(() {
       _records = recordList;
     });
@@ -93,6 +94,7 @@ class _MyHomeScreenState extends State<MyHomeScreen> {
   }
 
   void _showEditRecordPopup(Record record) {
+    _textController.text = record.text;
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -160,6 +162,7 @@ class _MyHomeScreenState extends State<MyHomeScreen> {
               ),
 
               itemBuilder: (context, index) {
+                print('INDEX=  $index');
                 final record = _records[index];
                 return ListTile(
                   // Datetime shown as a small leading label
