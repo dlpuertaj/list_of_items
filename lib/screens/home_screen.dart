@@ -55,6 +55,11 @@ class _MyHomeScreenState extends State<MyHomeScreen> {
     await _loadRecords();
   }
 
+  void _deleteRecord(Record record) async {
+    await DatabaseHelper.instance.deleteRecord(record.id!);
+    await _loadRecords();
+  }
+
   void _onRecordTap(Record record) {
     _showEditRecordPopup(record);
   }
@@ -120,6 +125,16 @@ class _MyHomeScreenState extends State<MyHomeScreen> {
                   Navigator.of(context).pop(); // Close the dialog
                 },
                 child: const Text('Apply'),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  // Handle the apply action here, e.g., print the text or process it
+                  _deleteRecord(record);
+                  //print('Applied text: ${_textController.text}');
+                  Navigator.of(context).pop(); // Close the dialog
+                },
+                child: const Text('Delete'),
               ),
             ],
           ),
