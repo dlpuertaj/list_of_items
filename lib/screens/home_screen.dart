@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../database/database_helper.dart';
 import '../models/record.dart';
+import '../utils/db_utils.dart';
 
 class MyHomeScreen extends StatefulWidget {
   const MyHomeScreen({super.key});
@@ -10,8 +11,6 @@ class MyHomeScreen extends StatefulWidget {
 }
 
 class _MyHomeScreenState extends State<MyHomeScreen> {
-  //final Random _rng = Random();
-
   late List<Record> _records = [];
 
   final TextEditingController _textController = TextEditingController();
@@ -19,13 +18,11 @@ class _MyHomeScreenState extends State<MyHomeScreen> {
   @override
   void initState() {
     super.initState();
-    _loadRecords();
+    _refreshRecords();
   }
 
-  Future<void> _loadRecords() async {
-    final records = await DatabaseHelper.instance.getAllRecords();
-    final recordList = records.map((map) => Record.fromMap(map)).toList();
-    for (Record record in recordList) print(record.text);
+  void _refreshRecords() async {
+    final recordList = await DatabaseUtils.fetchRecords();
     setState(() {
       _records = recordList;
     });
@@ -37,27 +34,6 @@ class _MyHomeScreenState extends State<MyHomeScreen> {
     final time =
         '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
     return '$date  $time';
-  }
-
-  void _addRecord(String text) async {
-    Record newRecord = Record(
-      dateTime: DateTime.now(),
-      text: text,
-      recordNote: '',
-    );
-    await DatabaseHelper.instance.insertRecord(newRecord.toMap());
-    await _loadRecords();
-  }
-
-  void _editRecord(Record record, String text) async {
-    record.setText(text);
-    await DatabaseHelper.instance.updateRecord(record.toMap());
-    await _loadRecords();
-  }
-
-  void _deleteRecord(Record record) async {
-    await DatabaseHelper.instance.deleteRecord(record.id!);
-    await _loadRecords();
   }
 
   void _onRecordTap(Record record) {
@@ -85,7 +61,8 @@ class _MyHomeScreenState extends State<MyHomeScreen> {
               ElevatedButton(
                 onPressed: () {
                   // Handle the apply action here, e.g., print the text or process it
-                  _addRecord(_textController.text);
+                  DatabaseUtils.addRecord(_textController.text);
+                  _refreshRecords();
                   //print('Applied text: ${_textController.text}');
                   Navigator.of(context).pop(); // Close the dialog
                 },
@@ -120,7 +97,8 @@ class _MyHomeScreenState extends State<MyHomeScreen> {
               ElevatedButton(
                 onPressed: () {
                   // Handle the apply action here, e.g., print the text or process it
-                  _editRecord(record, _textController.text);
+                  DatabaseUtils.editRecord(record, _textController.text);
+                  _refreshRecords();
                   //print('Applied text: ${_textController.text}');
                   Navigator.of(context).pop(); // Close the dialog
                 },
@@ -130,7 +108,8 @@ class _MyHomeScreenState extends State<MyHomeScreen> {
               ElevatedButton(
                 onPressed: () {
                   // Handle the apply action here, e.g., print the text or process it
-                  _deleteRecord(record);
+                  DatabaseUtils.deleteRecord(record);
+                  _refreshRecords();
                   //print('Applied text: ${_textController.text}');
                   Navigator.of(context).pop(); // Close the dialog
                 },
@@ -177,7 +156,6 @@ class _MyHomeScreenState extends State<MyHomeScreen> {
               ),
 
               itemBuilder: (context, index) {
-                print('INDEX=  $index');
                 final record = _records[index];
                 return ListTile(
                   // Datetime shown as a small leading label
