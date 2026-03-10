@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/record.dart';
+import '../utils/db_utils.dart';
 
 class MyHomeScreen extends StatefulWidget {
   const MyHomeScreen({super.key});
@@ -9,11 +10,22 @@ class MyHomeScreen extends StatefulWidget {
 }
 
 class _MyHomeScreenState extends State<MyHomeScreen> {
-  //final Random _rng = Random();
-
-  final List<Record> _records = [];
+  late List<Record> _records = [];
 
   final TextEditingController _textController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _refreshRecords();
+  }
+
+  void _refreshRecords() async {
+    final recordList = await DatabaseUtils.fetchRecords();
+    setState(() {
+      _records = recordList;
+    });
+  }
 
   String _formatDateTime(DateTime dt) {
     final date =
@@ -21,21 +33,6 @@ class _MyHomeScreenState extends State<MyHomeScreen> {
     final time =
         '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
     return '$date  $time';
-  }
-
-  void _addRecord(String text) {
-    setState(() {
-      _records.insert(
-        0, // newest item appears at the top
-        Record(dateTime: DateTime.now(), text: text),
-      );
-    });
-  }
-
-  void _editRecord(Record record, String text) {
-    setState(() {
-      record.setText(text);
-    });
   }
 
   void _onRecordTap(Record record) {
@@ -63,7 +60,8 @@ class _MyHomeScreenState extends State<MyHomeScreen> {
               ElevatedButton(
                 onPressed: () {
                   // Handle the apply action here, e.g., print the text or process it
-                  _addRecord(_textController.text);
+                  DatabaseUtils.addRecord(_textController.text);
+                  _refreshRecords();
                   //print('Applied text: ${_textController.text}');
                   Navigator.of(context).pop(); // Close the dialog
                 },
@@ -77,6 +75,7 @@ class _MyHomeScreenState extends State<MyHomeScreen> {
   }
 
   void _showEditRecordPopup(Record record) {
+    _textController.text = record.text;
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -97,11 +96,23 @@ class _MyHomeScreenState extends State<MyHomeScreen> {
               ElevatedButton(
                 onPressed: () {
                   // Handle the apply action here, e.g., print the text or process it
-                  _editRecord(record, _textController.text);
+                  DatabaseUtils.editRecord(record, _textController.text);
+                  _refreshRecords();
                   //print('Applied text: ${_textController.text}');
                   Navigator.of(context).pop(); // Close the dialog
                 },
                 child: const Text('Apply'),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  // Handle the apply action here, e.g., print the text or process it
+                  DatabaseUtils.deleteRecord(record);
+                  _refreshRecords();
+                  //print('Applied text: ${_textController.text}');
+                  Navigator.of(context).pop(); // Close the dialog
+                },
+                child: const Text('Delete'),
               ),
             ],
           ),
